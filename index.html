@@ -32,6 +32,26 @@
     header h1 { font-size: 1.8rem; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; }
     header p { opacity: 0.9; font-size: 1rem; max-width: 700px; margin: 0 auto; }
     
+    .status-bar {
+      background: #fff3e0;
+      border-left: 4px solid var(--secondary);
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+    }
+    .status-bar.visible { display: flex; }
+    .status-bar.success { background: #e8f5e9; border-left-color: var(--decrease); }
+    .status-bar.error { background: #ffebee; border-left-color: var(--increase); }
+    .status-bar .icon { font-size: 1.2rem; }
+    .status-bar .message { flex: 1; }
+    .status-bar button { 
+      background: var(--primary); color: white; border: none; 
+      padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;
+    }
+    
     .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; background: var(--card-bg); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 24px; }
     .filter-group { display: flex; flex-direction: column; gap: 6px; }
     .filter-group label { font-weight: 600; font-size: 0.9rem; color: var(--text-light); }
@@ -40,7 +60,7 @@
     
     .btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; gap: 8px; }
     .btn:hover { background: var(--primary-dark); }
-    .btn:disabled { background: #bdbdbd; cursor: not-allowed; }
+    .btn:disabled { background: #bdbdbd; cursor: not-allowed; opacity: 0.6; }
     .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
     .btn-outline:hover { background: rgba(46, 125, 50, 0.1); }
     .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
@@ -99,17 +119,21 @@
     
     .loading { text-align: center; padding: 40px; color: var(--text-light); }
     .loading-spinner { width: 40px; height: 40px; border: 4px solid rgba(46, 125, 50, 0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+    .loading-text { margin-top: 16px; font-size: 1rem; }
+    .loading-subtext { margin-top: 8px; font-size: 0.85rem; color: #999; }
     @keyframes spin { to { transform: rotate(360deg); } }
     
-    .error { background: #ffebee; color: #c62828; padding: 16px; border-radius: var(--radius); margin: 20px 0; }
-    .error h4 { margin-bottom: 8px; }
-    .error code { background: #fce4ec; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; word-break: break-all; }
+    .error { background: #ffebee; color: #c62828; padding: 20px; border-radius: var(--radius); margin: 20px 0; }
+    .error h4 { margin-bottom: 12px; font-size: 1.1rem; }
+    .error ul { margin: 12px 0 12px 20px; }
+    .error li { margin: 6px 0; }
+    .error code { background: #fce4ec; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; word-break: break-all; display: inline-block; margin-top: 8px; }
+    .error button { margin-top: 12px; }
     
     .footer { text-align: center; padding: 20px; color: var(--text-light); font-size: 0.9rem; margin-top: 20px; }
     
-    /* Print Styles */
     @media print {
-      .filters, .charts-section, .analysis-section, .veg-selector, .table-actions, .footer { display: none; }
+      .filters, .charts-section, .analysis-section, .veg-selector, .table-actions, .footer, .status-bar { display: none !important; }
       .table-section { box-shadow: none; }
       body { background: white; padding: 0; }
       table { font-size: 10px; }
@@ -131,6 +155,13 @@
       <h1>🥬 Mandi Rate Analyzer</h1>
       <p>Real-time vegetable price analysis with date comparison & export</p>
     </header>
+
+    <!-- Status Bar -->
+    <div id="statusBar" class="status-bar">
+      <span class="icon">⏳</span>
+      <span class="message">Loading data...</span>
+      <button id="retryBtn" style="display:none;">🔄 Retry</button>
+    </div>
 
     <div class="filters">
       <div class="filter-group">
@@ -180,8 +211,8 @@
       <div class="table-header">
         <h3>📋 Latest Rates Table (<span id="latestDateLabel">-</span>)</h3>
         <div class="table-actions">
-          <button class="btn btn-sm btn-success" id="exportCSV" disabled>📥 Export CSV</button>
-          <button class="btn btn-sm btn-danger" id="exportPDF" disabled>📄 Export PDF</button>
+          <button class="btn btn-sm btn-success" id="exportCSV" disabled>📥 CSV</button>
+          <button class="btn btn-sm btn-danger" id="exportPDF" disabled>📄 PDF</button>
           <button class="btn btn-sm btn-info" id="printTable" disabled>🖨️ Print</button>
         </div>
       </div>
@@ -189,14 +220,15 @@
       <div id="tableContainer">
         <div class="loading">
           <div class="loading-spinner"></div>
-          <p>Fetching market data from Google Sheets...</p>
-          <p style="margin-top:12px;font-size:0.85rem">Please wait 5-10 seconds</p>
+          <div class="loading-text">Connecting to Google Sheets...</div>
+          <div class="loading-subtext">This should take 5-10 seconds</div>
         </div>
       </div>
     </div>
 
     <div class="footer">
       <p>Data sourced from Google Sheets • Last updated: <span id="lastUpdated">-</span></p>
+      <p style="margin-top:8px;font-size:0.85rem">💡 If loading takes too long, check your internet connection</p>
     </div>
   </div>
 
@@ -221,8 +253,13 @@
     let dataLoaded = false;
     let currentTableData = [];
     let currentLatestDate = null;
+    let loadTimeout = null;
 
     const els = {
+      statusBar: document.getElementById('statusBar'),
+      statusMessage: document.querySelector('#statusBar .message'),
+      statusIcon: document.querySelector('#statusBar .icon'),
+      retryBtn: document.getElementById('retryBtn'),
       tableContainer: document.getElementById('tableContainer'),
       mandalFilter: document.getElementById('mandalFilter'),
       startDate: document.getElementById('startDate'),
@@ -242,6 +279,7 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => {
+      console.log('🥬 Mandi Rate Analyzer starting...');
       setupDatePickers();
       setupEventListeners();
       fetchData();
@@ -260,26 +298,79 @@
       els.exportCSV.addEventListener('click', exportToCSV);
       els.exportPDF.addEventListener('click', exportToPDF);
       els.printTable.addEventListener('click', () => window.print());
+      els.retryBtn.addEventListener('click', () => fetchData());
     }
 
+    // Show status message
+    function showStatus(message, type = 'loading', showRetry = false) {
+      els.statusBar.className = 'status-bar visible ' + type;
+      els.statusIcon.textContent = type === 'success' ? '✅' : type === 'error' ? '❌' : '⏳';
+      els.statusMessage.textContent = message;
+      els.retryBtn.style.display = showRetry ? 'inline-block' : 'none';
+    }
+
+    function hideStatus() {
+      els.statusBar.classList.remove('visible');
+    }
+
+    // Fetch Data with Timeout
     async function fetchData() {
+      console.log('📡 Fetching data from Google Sheets...');
+      showStatus('Connecting to Google Sheets...', 'loading', false);
+      setButtonsEnabled(false);
+      
+      // Clear any existing timeout
+      if (loadTimeout) clearTimeout(loadTimeout);
+      
+      // Set timeout for 20 seconds
+      loadTimeout = setTimeout(() => {
+        showError('Request timed out after 20 seconds. Please check your internet connection and try again.', true);
+      }, 20000);
+      
       try {
+        console.log('CSV URL:', CSV_URL);
         const response = await fetch(CSV_URL);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        clearTimeout(loadTimeout);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        console.log('✅ Response received, status:', response.status);
+        showStatus('Parsing CSV data...', 'loading', false);
         
         const csvText = await response.text();
+        console.log('📄 CSV size:', csvText.length, 'characters');
+        
+        if (csvText.length < 100) {
+          throw new Error('CSV file appears to be empty or invalid');
+        }
         
         Papa.parse(csvText, {
           header: true,
           skipEmptyLines: true,
           dynamicTyping: false,
           complete: (results) => {
+            console.log('✅ Parse complete');
+            console.log('📊 Rows found:', results.data?.length || 0);
+            
+            if (results.data && results.data.length > 0) {
+              console.log('📋 First row keys:', Object.keys(results.data[0]));
+            }
+            
             rawData = parseData(results.data);
+            console.log('✅ Valid rows after parsing:', rawData.length);
             
             if (rawData.length === 0) {
-              showError('No valid data found in CSV file');
+              showError('No valid data found in CSV. Please check your Google Sheet has data with Date and MANDAL columns.', true);
               return;
             }
+            
+            // Success!
+            hideStatus();
+            showStatus(`✅ Loaded ${rawData.length} records successfully`, 'success', false);
+            setTimeout(hideStatus, 5000);
             
             populateMandalFilter();
             populateVegSelector();
@@ -292,16 +383,31 @@
             els.lastUpdated.textContent = new Date().toLocaleDateString('en-IN');
             dataLoaded = true;
             
-            applyFilters();
+            console.log('🎉 Data loading complete!');
+            
+            // Auto-apply default filters
+            setTimeout(() => applyFilters(), 100);
           },
-          error: (err) => showError('CSV parse error: ' + err.message)
+          error: (err) => {
+            clearTimeout(loadTimeout);
+            console.error('❌ PapaParse error:', err);
+            showError('CSV parsing failed: ' + err.message, true);
+          }
         });
+        
       } catch (error) {
-        showError('Failed to fetch  ' + error.message);
+        clearTimeout(loadTimeout);
+        console.error('❌ Fetch error:', error);
+        showError('Failed to load  ' + error.message + '. Please check your internet connection and Google Sheet permissions.', true);
       }
     }
 
     function parseData(data) {
+      if (!data || !Array.isArray(data)) {
+        console.warn('⚠️ Invalid data array');
+        return [];
+      }
+      
       return data
         .filter(row => row && row.Date && row.MANDAL)
         .filter(row => {
@@ -352,6 +458,7 @@
 
     function populateMandalFilter() {
       const mandals = [...new Set(rawData.map(d => d.MANDAL).filter(m => m))].sort();
+      console.log('📍 Found', mandals.length, 'mandals');
       els.mandalFilter.innerHTML = '<option value="">All Mandals</option>' +
         mandals.map(m => `<option value="${m}">${m}</option>`).join('');
     }
@@ -376,12 +483,16 @@
       });
     }
 
+    function setButtonsEnabled(enabled) {
+      els.applyFilters.disabled = !enabled;
+      els.resetFilters.disabled = !enabled;
+      els.exportCSV.disabled = !enabled;
+      els.exportPDF.disabled = !enabled;
+      els.printTable.disabled = !enabled;
+    }
+
     function enableUI() {
-      els.applyFilters.disabled = false;
-      els.resetFilters.disabled = false;
-      els.exportCSV.disabled = false;
-      els.exportPDF.disabled = false;
-      els.printTable.disabled = false;
+      setButtonsEnabled(true);
     }
 
     function getLatestDateData(data) {
@@ -392,7 +503,12 @@
     }
 
     function applyFilters() {
-      if (!dataLoaded) return;
+      if (!dataLoaded) {
+        console.warn('⚠️ Cannot apply filters - data not loaded');
+        return;
+      }
+      
+      console.log('🔍 Applying filters...');
       
       const startDate = els.startDate.valueAsDate;
       const endDate = els.endDate.valueAsDate;
@@ -406,14 +522,18 @@
         return true;
       });
       
+      console.log('📊 Filtered to', filteredData.length, 'records');
+      
       if (filteredData.length === 0) {
-        showError('No data matches filters. Try widening your date range.');
+        showError('No data matches your filters. Try widening your date range or selecting a different mandal.', false);
         return;
       }
       
       const sortedByDate = [...filteredData].sort((a, b) => a.Date - b.Date);
       const firstDate = sortedByDate[0].Date;
       const latestDate = sortedByDate[sortedByDate.length - 1].Date;
+      
+      console.log('📅 Date range:', formatDate(firstDate), 'to', formatDate(latestDate));
       
       prepareComparisonData(firstDate, latestDate, mandal);
       renderStats();
@@ -422,6 +542,9 @@
       const latestData = getLatestDateData(filteredData);
       renderTable(latestData, latestDate);
       renderComparison();
+      
+      showStatus(`✅ Showing ${filteredData.length} records`, 'success', false);
+      setTimeout(hideStatus, 3000);
     }
 
     function prepareComparisonData(firstDate, latestDate, mandal) {
@@ -692,23 +815,25 @@
       return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
     }
 
-    function showError(message) {
+    function showError(message, showRetry = false) {
       els.tableContainer.innerHTML = `
         <div class="error">
           <h4>⚠️ ${message}</h4>
-          <ul style="margin:12px 0 12px 20px">
+          <ul>
             <li>Check your internet connection</li>
-            <li>Verify Google Sheet is published to web</li>
-            <li>Ensure "Anyone with link can view" permission</li>
-            <li>Try refreshing the page</li>
+            <li>Verify Google Sheet is published to web (File → Share → Publish to web)</li>
+            <li>Ensure "Anyone with link can view" permission is set</li>
+            <li>Try opening the CSV URL directly in a new tab to test</li>
           </ul>
           <p style="margin-top:12px"><strong>CSV URL:</strong><br><code>${CSV_URL}</code></p>
+          ${showRetry ? '<button class="btn" onclick="fetchData()">🔄 Try Again</button>' : ''}
         </div>
       `;
+      showStatus(message, 'error', showRetry);
     }
 
     function exportToCSV() {
-      const exportData = getLatestDateData(filteredData.length > 0 ? filteredData : rawData);
+      const exportData = currentTableData.length > 0 ? currentTableData : getLatestDateData(filteredData.length > 0 ? filteredData : rawData);
       if (exportData.length === 0) { alert('No data to export'); return; }
       
       const headers = ['Date', 'Mandal', ...VEGETABLES];
@@ -726,15 +851,10 @@
       link.click();
     }
 
-    // ENHANCED PDF EXPORT - Matches table exactly
     function exportToPDF() {
       const exportData = currentTableData.length > 0 ? currentTableData : getLatestDateData(filteredData.length > 0 ? filteredData : rawData);
-      if (exportData.length === 0) {
-        alert('No data to export');
-        return;
-      }
+      if (exportData.length === 0) { alert('No data to export'); return; }
 
-      // Calculate first date averages for comparison
       const firstDateAvg = {};
       if (comparisonData?.firstData) {
         VEGETABLES.forEach(veg => {
@@ -743,22 +863,15 @@
         });
       }
 
-      // Create PDF - Use A3 landscape for more columns, or A4 if fewer mandals
-      const pageWidth = exportData.length > 15 ? 420 : 297; // A3 vs A4
+      const pageWidth = exportData.length > 15 ? 420 : 297;
       const pageHeight = exportData.length > 15 ? 297 : 210;
-      const doc = new jsPDF({ 
-        orientation: 'landscape', 
-        unit: 'mm', 
-        format: [pageWidth, pageHeight] 
-      });
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [pageWidth, pageHeight] });
 
-      // Header
       doc.setFontSize(18);
       doc.setTextColor(46, 125, 50);
       doc.setFont('helvetica', 'bold');
       doc.text('🥬 MANDI RATE REPORT', pageWidth / 2, 15, { align: 'center' });
       
-      // Subtitle with dates
       doc.setFontSize(10);
       doc.setTextColor(102, 102, 102);
       doc.setFont('helvetica', 'normal');
@@ -768,95 +881,64 @@
       const mandal = els.mandalFilter.value || 'All Mandals';
       
       doc.text(`Report Date: ${formatDate(reportDate)}`, pageWidth / 2, 22, { align: 'center' });
-      doc.text(`Filter Period: ${formatDate(filterStart)} to ${formatDate(filterEnd)}`, pageWidth / 2, 27, { align: 'center' });
+      doc.text(`Filter: ${formatDate(filterStart)} to ${formatDate(filterEnd)}`, pageWidth / 2, 27, { align: 'center' });
       doc.text(`Mandal: ${mandal}`, pageWidth / 2, 32, { align: 'center' });
 
-      // Prepare table data with change indicators
       const tableHeaders = [['Mandal', ...VEGETABLES.map(v => v.replace(/_/g, ' '))]];
       
       const tableBody = exportData.map(row => {
         const rowData = [row.MANDAL || 'N/A'];
-        
         VEGETABLES.forEach(veg => {
           const currVal = row[veg];
           const firstAvg = firstDateAvg[veg];
-          
           if (currVal === null || currVal === undefined) {
             rowData.push('N/A');
           } else {
             let cellText = `₹${currVal.toFixed(1)}`;
-            
             if (firstAvg !== null && firstAvg !== undefined) {
               const change = currVal - firstAvg;
               const percent = firstAvg !== 0 ? ((change / firstAvg) * 100).toFixed(1) : '0.0';
               const arrow = change > 0.01 ? '↑' : change < -0.01 ? '↓' : '→';
               cellText += ` ${arrow} ${Math.abs(change).toFixed(1)} (${percent}%)`;
             }
-            
             rowData.push(cellText);
           }
         });
-        
         return rowData;
       });
 
-      // Calculate column widths dynamically
       const mandalWidth = 25;
-      const remainingWidth = pageWidth - mandalWidth - 20; // 20mm for margins
+      const remainingWidth = pageWidth - mandalWidth - 20;
       const vegWidth = remainingWidth / VEGETABLES.length;
       
       const columnStyles = {};
       columnStyles[0] = { cellWidth: mandalWidth, fontStyle: 'bold', fillColor: [232, 245, 233] };
-      
       for (let i = 1; i <= VEGETABLES.length; i++) {
         columnStyles[i] = { cellWidth: vegWidth, minCellWidth: 15 };
       }
 
-      // Generate table
       doc.autoTable({
         head: tableHeaders,
         body: tableBody,
         startY: 38,
         theme: 'grid',
-        styles: { 
-          fontSize: 7, 
-          cellPadding: 1.5,
-          overflow: 'linebreak',
-          cellWidth: 'wrap'
-        },
-        headStyles: { 
-          fillColor: [46, 125, 50], 
-          textColor: 255,
-          fontStyle: 'bold',
-          fontSize: 7,
-          halign: 'center'
-        },
-        bodyStyles: {
-          textColor: 50,
-          fontSize: 6.5
-        },
-        alternateRowStyles: { 
-          fillColor: [249, 251, 231] 
-        },
+        styles: { fontSize: 7, cellPadding: 1.5, overflow: 'linebreak' },
+        headStyles: { fillColor: [46, 125, 50], textColor: 255, fontStyle: 'bold', fontSize: 7, halign: 'center' },
+        bodyStyles: { textColor: 50, fontSize: 6.5 },
+        alternateRowStyles: { fillColor: [249, 251, 231] },
         columnStyles: columnStyles,
         margin: { top: 38, left: 10, right: 10 },
         didParseCell: function(data) {
-          // Color-code rate changes
           if (data.section === 'body' && data.column.index > 0) {
             const cellText = data.cell.raw;
             if (typeof cellText === 'string') {
-              if (cellText.includes('↑')) {
-                data.cell.styles.textColor = [211, 47, 47]; // Red for increase
-              } else if (cellText.includes('↓')) {
-                data.cell.styles.textColor = [56, 142, 60]; // Green for decrease
-              } else if (cellText.includes('→')) {
-                data.cell.styles.textColor = [117, 117, 117]; // Gray for neutral
-              }
+              if (cellText.includes('↑')) data.cell.styles.textColor = [211, 47, 47];
+              else if (cellText.includes('↓')) data.cell.styles.textColor = [56, 142, 60];
+              else if (cellText.includes('→')) data.cell.styles.textColor = [117, 117, 117];
             }
           }
         },
         didDrawPage: function(data) {
-          // Footer on each page
           doc.setFontSize(8);
           doc.setTextColor(150, 150, 150);
           doc.text('Generated by Mandi Rate Analyzer', pageWidth / 2, pageHeight - 10, { align: 'center' });
@@ -864,32 +946,11 @@
         }
       });
 
-      // Add summary section if space allows
-      const finalY = doc.lastAutoTable.finalY + 10;
-      if (finalY < pageHeight - 40) {
-        doc.setFontSize(10);
-        doc.setTextColor(46, 125, 50);
-        doc.setFont('helvetica', 'bold');
-        doc.text('📊 Summary Statistics', 15, finalY);
-        
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(102, 102, 102);
-        doc.setFontSize(8);
-        
-        const totalMandals = new Set(exportData.map(d => d.MANDAL)).size;
-        const totalVeg = VEGETABLES.length;
-        
-        doc.text(`Total Mandals: ${totalMandals}`, 15, finalY + 6);
-        doc.text(`Total Vegetables: ${totalVeg}`, 80, finalY + 6);
-        doc.text(`Report Generated: ${new Date().toLocaleString('en-IN')}`, 150, finalY + 6);
-      }
-
-      // Save PDF
-      const fileName = `mandi_rates_${formatDate(reportDate).replace(/\s/g, '_')}_${mandal.replace(/\s/g, '_')}.pdf`;
+      const fileName = `mandi_rates_${formatDate(reportDate).replace(/\s/g, '_')}.pdf`;
       doc.save(fileName);
     }
 
-    window.mandiAnalyzer = { rawData, filteredData, VEGETABLES, applyFilters };
+    window.mandiAnalyzer = { rawData, filteredData, VEGETABLES, applyFilters, fetchData };
   </script>
 </body>
 </html>
