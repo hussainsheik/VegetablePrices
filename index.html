@@ -10,14 +10,24 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <style>
     :root {
-      --primary: #2e7d32; --primary-dark: #1b5e20; --secondary: #ff9800;
-      --bg: #f5f9f5; --card-bg: #ffffff; --text: #1a1a1a; --text-light: #666;
-      --border: #e0e0e0; --increase: #d32f2f; --decrease: #388e3c; --neutral: #757575;
-      --shadow: 0 4px 12px rgba(0,0,0,0.08); --radius: 12px;
+      --primary: #2e7d32;
+      --primary-dark: #1b5e20;
+      --secondary: #ff9800;
+      --bg: #f5f9f5;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-light: #666;
+      --border: #e0e0e0;
+      --increase: #d32f2f;
+      --decrease: #388e3c;
+      --neutral: #757575;
+      --shadow: 0 4px 12px rgba(0,0,0,0.08);
+      --radius: 12px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 20px; }
     .container { max-width: 1400px; margin: 0 auto; }
+    
     header { text-align: center; padding: 24px 16px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border-radius: var(--radius); margin-bottom: 24px; box-shadow: var(--shadow); }
     header h1 { font-size: 1.8rem; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; }
     header p { opacity: 0.9; font-size: 1rem; max-width: 700px; margin: 0 auto; }
@@ -25,7 +35,7 @@
     .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; background: var(--card-bg); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 24px; }
     .filter-group { display: flex; flex-direction: column; gap: 6px; }
     .filter-group label { font-weight: 600; font-size: 0.9rem; color: var(--text-light); }
-    .filter-group input, .filter-group select { padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; background: #fafafa; transition: border-color 0.2s; }
+    .filter-group input, .filter-group select { padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; background: #fafafa; }
     .filter-group input:focus, .filter-group select:focus { outline: none; border-color: var(--primary); background: white; }
     
     .btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; gap: 8px; }
@@ -46,15 +56,15 @@
     
     .charts-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 24px; }
     .chart-card { background: var(--card-bg); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
-    .chart-card h3 { margin-bottom: 16px; color: var(--primary-dark); font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+    .chart-card h3 { margin-bottom: 16px; color: var(--primary-dark); font-size: 1.1rem; }
     .chart-container { position: relative; height: 300px; width: 100%; }
     
     .analysis-section { background: var(--card-bg); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 24px; display: none; }
     .analysis-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
-    .analysis-header h3 { color: var(--primary-dark); font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+    .analysis-header h3 { color: var(--primary-dark); font-size: 1.2rem; }
     .analysis-dates { font-size: 0.9rem; color: var(--text-light); background: #e8f5e9; padding: 6px 12px; border-radius: 20px; }
     
-    .comparison-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .comparison-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
     .comparison-card { background: #f9fbe7; border-left: 4px solid var(--primary); padding: 16px; border-radius: 8px; }
     .comparison-card.increase { border-left-color: var(--increase); background: #ffebee; }
     .comparison-card.decrease { border-left-color: var(--decrease); background: #e8f5e9; }
@@ -69,7 +79,7 @@
     .table-header h3 { color: var(--primary-dark); font-size: 1.2rem; }
     .table-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     
-    .veg-selector { display: flex; gap: 8px; flex-wrap: wrap; max-width: 100%; overflow-x: auto; padding-bottom: 8px; }
+    .veg-selector { display: flex; gap: 8px; flex-wrap: wrap; max-width: 100%; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
     .veg-chip { padding: 6px 14px; background: #e8f5e9; border: 1px solid var(--primary); border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
     .veg-chip.active, .veg-chip:hover { background: var(--primary); color: white; }
     
@@ -89,9 +99,9 @@
     .loading-spinner { width: 40px; height: 40px; border: 4px solid rgba(46, 125, 50, 0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     
-    .error { background: #ffebee; color: #c62828; padding: 16px; border-radius: var(--radius); margin: 20px 0; text-align: left; }
+    .error { background: #ffebee; color: #c62828; padding: 16px; border-radius: var(--radius); margin: 20px 0; }
     .error h4 { margin-bottom: 8px; }
-    .error code { background: #fce4ec; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+    .error code { background: #fce4ec; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; word-break: break-all; }
     
     .footer { text-align: center; padding: 20px; color: var(--text-light); font-size: 0.9rem; margin-top: 20px; }
     
@@ -99,9 +109,8 @@
       .filters { grid-template-columns: 1fr; } 
       .charts-section { grid-template-columns: 1fr; } 
       header h1 { font-size: 1.4rem; } 
-      th, td { padding: 10px 6px; font-size: 0.85rem; }
       .table-header { flex-direction: column; align-items: flex-start; }
-      .table-actions { width: 100%; justify-content: flex-start; }
+      .table-actions { width: 100%; }
     }
   </style>
 </head>
@@ -158,7 +167,7 @@
 
     <div class="table-section">
       <div class="table-header">
-        <h3>📋 Latest Rates Table (<span id="latestDateLabel">Loading...</span>)</h3>
+        <h3>📋 Latest Rates Table (<span id="latestDateLabel">-</span>)</h3>
         <div class="table-actions">
           <button class="btn btn-sm btn-success" id="exportCSV" disabled>📥 Export CSV</button>
           <button class="btn btn-sm btn-danger" id="exportPDF" disabled>📄 Export PDF</button>
@@ -169,14 +178,13 @@
         <div class="loading">
           <div class="loading-spinner"></div>
           <p>Fetching market data from Google Sheets...</p>
-          <p style="margin-top:12px;font-size:0.85rem">This should take 5-10 seconds</p>
+          <p style="margin-top:12px;font-size:0.85rem">Please wait 5-10 seconds</p>
         </div>
       </div>
     </div>
 
     <div class="footer">
       <p>Data sourced from Google Sheets • Last updated: <span id="lastUpdated">-</span></p>
-      <p style="margin-top:8px;font-size:0.85rem">💡 Tip: Table loads first! Use filters to narrow down results</p>
     </div>
   </div>
 
@@ -192,108 +200,113 @@
       'AKAKARA','CAPSICUM','GINGER'
     ];
 
-    let rawData = [], filteredData = [], selectedVegetable = 'TOMATO';
-    let charts = {}, sortConfig = { key: 'MANDAL', direction: 'asc' };
+    let rawData = [];
+    let filteredData = [];
+    let selectedVegetable = 'TOMATO';
+    let charts = {};
+    let sortConfig = { key: 'MANDAL', direction: 'asc' };
     let comparisonData = null;
     let dataLoaded = false;
 
-    const tableContainer = document.getElementById('tableContainer');
-    const mandalFilter = document.getElementById('mandalFilter');
-    const startDateInput = document.getElementById('startDate');
-    const endDateInput = document.getElementById('endDate');
-    const vegSelector = document.getElementById('vegSelector');
-    const statsContainer = document.getElementById('statsContainer');
-    const analysisSection = document.getElementById('analysisSection');
-    const comparisonGrid = document.getElementById('comparisonGrid');
-    const comparisonDates = document.getElementById('comparisonDates');
-    const latestDateLabel = document.getElementById('latestDateLabel');
+    const els = {
+      tableContainer: document.getElementById('tableContainer'),
+      mandalFilter: document.getElementById('mandalFilter'),
+      startDate: document.getElementById('startDate'),
+      endDate: document.getElementById('endDate'),
+      vegSelector: document.getElementById('vegSelector'),
+      statsContainer: document.getElementById('statsContainer'),
+      analysisSection: document.getElementById('analysisSection'),
+      comparisonGrid: document.getElementById('comparisonGrid'),
+      comparisonDates: document.getElementById('comparisonDates'),
+      latestDateLabel: document.getElementById('latestDateLabel'),
+      applyFilters: document.getElementById('applyFilters'),
+      resetFilters: document.getElementById('resetFilters'),
+      exportCSV: document.getElementById('exportCSV'),
+      exportPDF: document.getElementById('exportPDF'),
+      lastUpdated: document.getElementById('lastUpdated')
+    };
 
-    document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
       setupDatePickers();
       setupEventListeners();
-      await fetchData(); // Fetch and show table immediately
+      fetchData();
     });
 
     function setupDatePickers() {
       const today = new Date();
       const thirtyDaysAgo = new Date(today.getTime() - 30*24*60*60*1000);
-      endDateInput.valueAsDate = today;
-      startDateInput.valueAsDate = thirtyDaysAgo;
+      els.endDate.valueAsDate = today;
+      els.startDate.valueAsDate = thirtyDaysAgo;
     }
 
     function setupEventListeners() {
-      document.getElementById('applyFilters').addEventListener('click', applyFilters);
-      document.getElementById('resetFilters').addEventListener('click', resetFilters);
-      document.getElementById('exportCSV').addEventListener('click', exportToCSV);
-      document.getElementById('exportPDF').addEventListener('click', exportToPDF);
+      els.applyFilters.addEventListener('click', applyFilters);
+      els.resetFilters.addEventListener('click', resetFilters);
+      els.exportCSV.addEventListener('click', exportToCSV);
+      els.exportPDF.addEventListener('click', exportToPDF);
     }
 
-    // FAST FETCH - Minimal processing, show table ASAP
+    // Fetch Data
     async function fetchData() {
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000);
-        
-        const response = await fetch(CSV_URL, { signal: controller.signal });
-        clearTimeout(timeoutId);
-        
+        const response = await fetch(CSV_URL);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
         const csvText = await response.text();
         
         Papa.parse(csvText, {
-          header: true, 
-          skipEmptyLines: true, 
+          header: true,
+          skipEmptyLines: true,
           dynamicTyping: false,
           complete: (results) => {
-            rawData = parseDataFast(results.data);
+            rawData = parseData(results.data);
             
             if (rawData.length === 0) {
-              showError('No valid data found in CSV');
+              showError('No valid data found in CSV file');
               return;
             }
             
-            // Show data immediately
             populateMandalFilter();
             populateVegSelector();
-            renderTable(getLatestDateData()); // Show latest date by default
-            enableUI();
             
-            document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString('en-IN');
+            // Show latest date table immediately
+            const latestData = getLatestDateData(rawData);
+            const latestDate = latestData.length > 0 ? latestData[0].Date : new Date();
+            renderTable(latestData, latestDate);
+            
+            enableUI();
+            els.lastUpdated.textContent = new Date().toLocaleDateString('en-IN');
             dataLoaded = true;
             
-            // Auto-apply filters for default date range
+            // Auto-apply default filters
             applyFilters();
           },
           error: (err) => showError('CSV parse error: ' + err.message)
         });
-        
       } catch (error) {
-        if (error.name === 'AbortError') {
-          showError('Request timed out. Check internet connection.');
-        } else {
-          showError('Failed to fetch  ' + error.message);
-        }
+        showError('Failed to fetch  ' + error.message);
       }
     }
 
-    // FAST PARSING - Only essential fields
-    function parseDataFast(data) {
+    // Parse Data
+    function parseData(data) {
       return data
         .filter(row => row && row.Date && row.MANDAL)
         .filter(row => {
-          const m = row.MANDAL.toLowerCase();
+          const m = (row.MANDAL || '').toLowerCase();
           return !(m.includes('mandal') && m.includes('rates'));
         })
         .map(row => {
-          const parsed = { 
-            Date: parseDate(row.Date), 
-            MANDAL: (row.MANDAL || '').trim() 
+          const parsed = {
+            Date: parseDate(row.Date),
+            MANDAL: (row.MANDAL || '').trim()
           };
           
-          // Only parse vegetable columns that exist
           VEGETABLES.forEach(veg => {
-            parsed[veg] = row.hasOwnProperty(veg) ? parseValue(row[veg]) : null;
+            parsed[veg] = (row[veg] !== undefined && row[veg] !== null) 
+              ? parseValue(row[veg]) 
+              : null;
           });
           
           return parsed;
@@ -303,60 +316,73 @@
 
     function parseDate(dateStr) {
       if (!dateStr) return null;
-      const parts = String(dateStr).split('/');
+      const str = String(dateStr).trim();
+      
+      // Try MM/DD/YYYY
+      const parts = str.split('/');
       if (parts.length === 3) {
-        const [m, d, y] = parts.map(Number);
+        const [m, d, y] = parts.map(p => parseInt(p, 10));
         if (m >= 1 && m <= 12 && d >= 1 && d <= 31 && y > 2000) {
           return new Date(y, m - 1, d);
         }
       }
-      const d = new Date(dateStr);
+      
+      // Try standard parsing
+      const d = new Date(str);
       return isNaN(d.getTime()) ? null : d;
     }
 
     function parseValue(val) {
       if (val === null || val === undefined) return null;
       const str = String(val).trim().toLowerCase();
+      
       const invalid = ['na', 'n/a', 'nill', 'nil', '-', '--', 'not available', 'column 31', 'yes', 'no', 'n', ''];
       if (invalid.includes(str)) return null;
-      const num = parseFloat(String(val).trim().split(/[.\s,]/)[0]);
+      
+      // Extract first number from string
+      const match = String(val).trim().match(/^[\d.]+/);
+      if (!match) return null;
+      
+      const num = parseFloat(match[0]);
       return isNaN(num) || num < 0 ? null : num;
     }
 
     function populateMandalFilter() {
       const mandals = [...new Set(rawData.map(d => d.MANDAL).filter(m => m))].sort();
-      mandalFilter.innerHTML = '<option value="">All Mandals</option>' +
+      els.mandalFilter.innerHTML = '<option value="">All Mandals</option>' +
         mandals.map(m => `<option value="${m}">${m}</option>`).join('');
     }
 
     function populateVegSelector() {
-      vegSelector.innerHTML = VEGETABLES.map(veg => 
+      els.vegSelector.innerHTML = VEGETABLES.map(veg => 
         `<span class="veg-chip ${veg === selectedVegetable ? 'active' : ''}" data-veg="${veg}">${veg.replace(/_/g, ' ')}</span>`
       ).join('');
       
-      vegSelector.querySelectorAll('.veg-chip').forEach(chip => {
+      els.vegSelector.querySelectorAll('.veg-chip').forEach(chip => {
         chip.addEventListener('click', (e) => {
-          vegSelector.querySelectorAll('.veg-chip').forEach(c => c.classList.remove('active'));
+          els.vegSelector.querySelectorAll('.veg-chip').forEach(c => c.classList.remove('active'));
           e.currentTarget.classList.add('active');
           selectedVegetable = e.currentTarget.dataset.veg;
           if (dataLoaded) {
             renderCharts();
-            renderTable(getLatestDateData());
+            const latestData = getLatestDateData(filteredData.length > 0 ? filteredData : rawData);
+            const latestDate = latestData.length > 0 ? latestData[0].Date : new Date();
+            renderTable(latestData, latestDate);
           }
         });
       });
     }
 
     function enableUI() {
-      document.getElementById('applyFilters').disabled = false;
-      document.getElementById('resetFilters').disabled = false;
-      document.getElementById('exportCSV').disabled = false;
-      document.getElementById('exportPDF').disabled = false;
+      els.applyFilters.disabled = false;
+      els.resetFilters.disabled = false;
+      els.exportCSV.disabled = false;
+      els.exportPDF.disabled = false;
     }
 
-    function getLatestDateData(data = filteredData.length > 0 ? filteredData : rawData) {
+    function getLatestDateData(data) {
       if (!data || data.length === 0) return [];
-      const sorted = [...data].sort((a,b) => b.Date - a.Date);
+      const sorted = [...data].sort((a, b) => b.Date - a.Date);
       const latestDate = sorted[0].Date;
       return data.filter(row => row.Date.getTime() === latestDate.getTime());
     }
@@ -364,9 +390,9 @@
     function applyFilters() {
       if (!dataLoaded) return;
       
-      const startDate = startDateInput.valueAsDate;
-      const endDate = endDateInput.valueAsDate;
-      const mandal = mandalFilter.value;
+      const startDate = els.startDate.valueAsDate;
+      const endDate = els.endDate.valueAsDate;
+      const mandal = els.mandalFilter.value;
       
       filteredData = rawData.filter(row => {
         if (!row || !row.Date) return false;
@@ -381,14 +407,16 @@
         return;
       }
       
-      const sortedByDate = [...filteredData].sort((a,b) => a.Date - b.Date);
+      const sortedByDate = [...filteredData].sort((a, b) => a.Date - b.Date);
       const firstDate = sortedByDate[0].Date;
       const latestDate = sortedByDate[sortedByDate.length - 1].Date;
       
       prepareComparisonData(firstDate, latestDate, mandal);
       renderStats();
       renderCharts();
-      renderTable(getLatestDateData(), latestDate);
+      
+      const latestData = getLatestDateData(filteredData);
+      renderTable(latestData, latestDate);
       renderComparison();
     }
 
@@ -407,20 +435,22 @@
 
     function resetFilters() {
       setupDatePickers();
-      mandalFilter.value = '';
+      els.mandalFilter.value = '';
       applyFilters();
     }
 
     function renderStats() {
       const totalRecords = filteredData.length;
       const uniqueMandals = new Set(filteredData.map(d => d.MANDAL)).size;
-      const dates = filteredData.map(d => d.Date).filter(d => d).sort((a,b) => a - b);
-      const dateRange = dates.length >= 2 ? `${formatDate(dates[0])} to ${formatDate(dates[dates.length-1])}` : 'N/A';
+      const dates = filteredData.map(d => d.Date).filter(d => d).sort((a, b) => a - b);
+      const dateRange = dates.length >= 2 ? `${formatDate(dates[0])} to ${formatDate(dates[dates.length - 1])}` : 'N/A';
       
-      const validPrices = filteredData.map(d => d?.[selectedVegetable]).filter(p => p !== null && p !== undefined);
-      const avgPrice = validPrices.length > 0 ? (validPrices.reduce((a,b) => a+b, 0) / validPrices.length).toFixed(1) : 'N/A';
+      const validPrices = filteredData.map(d => d[selectedVegetable]).filter(p => p !== null);
+      const avgPrice = validPrices.length > 0 
+        ? (validPrices.reduce((a, b) => a + b, 0) / validPrices.length).toFixed(1) 
+        : 'N/A';
       
-      statsContainer.innerHTML = `
+      els.statsContainer.innerHTML = `
         <div class="stat-card"><div class="label">Total Records</div><div class="value">${totalRecords}</div></div>
         <div class="stat-card"><div class="label">Mandals Covered</div><div class="value">${uniqueMandals}</div></div>
         <div class="stat-card"><div class="label">Date Range</div><div class="value" style="font-size:1.2rem">${dateRange}</div></div>
@@ -435,65 +465,104 @@
 
     function renderAvgPriceChart() {
       const ctx = document.getElementById('avgPriceChart').getContext('2d');
+      
       const averages = VEGETABLES.map(veg => {
-        const values = filteredData.map(d => d?.[veg]).filter(v => v !== null && v !== undefined);
-        return values.length > 0 ? values.reduce((a,b) => a+b, 0) / values.length : null;
+        const values = filteredData.map(d => d[veg]).filter(v => v !== null);
+        return values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
       });
+      
       const labels = VEGETABLES.filter((_, i) => averages[i] !== null);
       const data = averages.filter(v => v !== null);
       
       if (charts.avgPrice) charts.avgPrice.destroy();
+      
       charts.avgPrice = new Chart(ctx, {
         type: 'bar',
-         {
+        data: {
           labels: labels.map(l => l.replace(/_/g, ' ')),
           datasets: [{
-            label: 'Average Price (₹)', data,
+            label: 'Average Price (₹)',
+            data: data,
             backgroundColor: 'rgba(46, 125, 50, 0.7)',
-            borderColor: 'rgba(46, 125, 50, 1)', borderWidth: 1, borderRadius: 4
+            borderColor: 'rgba(46, 125, 50, 1)',
+            borderWidth: 1,
+            borderRadius: 4
           }]
         },
         options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `₹${ctx.parsed.y?.toFixed(2) || 'N/A'}` } } },
-          scales: { y: { beginAtZero: true, title: { display: true, text: 'Price (₹)' } } }
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `₹${ctx.parsed.y?.toFixed(2) || 'N/A'}`
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: 'Price (₹)' }
+            }
+          }
         }
       });
     }
 
     function renderTrendChart() {
       const ctx = document.getElementById('trendChart').getContext('2d');
+      
       const grouped = {};
       filteredData.forEach(row => {
         if (!row?.Date) return;
         const dateKey = formatDate(row.Date);
         if (!grouped[dateKey]) grouped[dateKey] = [];
-        const val = row?.[selectedVegetable];
-        if (val !== null && val !== undefined) grouped[dateKey].push(val);
+        const val = row[selectedVegetable];
+        if (val !== null) grouped[dateKey].push(val);
       });
-      const labels = Object.keys(grouped).sort((a,b) => new Date(a) - new Date(b));
+      
+      const labels = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
       const data = labels.map(date => {
         const values = grouped[date];
-        return values?.length > 0 ? values.reduce((a,b) => a+b, 0) / values.length : null;
+        return values?.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
       }).filter(v => v !== null);
       
       if (charts.trend) charts.trend.destroy();
+      
       charts.trend = new Chart(ctx, {
         type: 'line',
-         {
+        data: {
           labels: labels.filter((_, i) => data[i] !== null),
           datasets: [{
-            label: `${selectedVegetable.replace(/_/g, ' ')} Price`, data,
-            borderColor: '#2e7d32', backgroundColor: 'rgba(46, 125, 50, 0.1)',
-            fill: true, tension: 0.3, pointRadius: 4, pointHoverRadius: 6
+            label: `${selectedVegetable.replace(/_/g, ' ')} Price`,
+            data: data,
+            borderColor: '#2e7d32',
+            backgroundColor: 'rgba(46, 125, 50, 0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 4,
+            pointHoverRadius: 6
           }]
         },
         options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { tooltip: { callbacks: { label: ctx => `₹${ctx.parsed.y?.toFixed(2) || 'N/A'}` } } },
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `₹${ctx.parsed.y?.toFixed(2) || 'N/A'}`
+              }
+            }
+          },
           scales: {
-            y: { beginAtZero: true, title: { display: true, text: 'Price (₹)' } },
-            x: { title: { display: true, text: 'Date' } }
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: 'Price (₹)' }
+            },
+            x: {
+              title: { display: true, text: 'Date' }
+            }
           }
         }
       });
@@ -501,19 +570,19 @@
 
     function renderComparison() {
       if (!comparisonData) {
-        analysisSection.style.display = 'none';
+        els.analysisSection.style.display = 'none';
         return;
       }
       
       const { firstDate, latestDate, firstData, latestData } = comparisonData;
-      comparisonDates.textContent = `${formatDate(firstDate)} → ${formatDate(latestDate)}`;
+      els.comparisonDates.textContent = `${formatDate(firstDate)} → ${formatDate(latestDate)}`;
       
       const comparisons = VEGETABLES.map(veg => {
         const firstAvg = firstData.map(r => r[veg]).filter(v => v !== null);
         const latestAvg = latestData.map(r => r[veg]).filter(v => v !== null);
         
-        const firstPrice = firstAvg.length > 0 ? firstAvg.reduce((a,b) => a+b, 0) / firstAvg.length : null;
-        const latestPrice = latestAvg.length > 0 ? latestAvg.reduce((a,b) => a+b, 0) / latestAvg.length : null;
+        const firstPrice = firstAvg.length > 0 ? firstAvg.reduce((a, b) => a + b, 0) / firstAvg.length : null;
+        const latestPrice = latestAvg.length > 0 ? latestAvg.reduce((a, b) => a + b, 0) / latestAvg.length : null;
         
         if (firstPrice === null || latestPrice === null) return null;
         
@@ -522,19 +591,22 @@
         
         return {
           vegetable: veg,
-          firstPrice, latestPrice, change, percent,
+          firstPrice,
+          latestPrice,
+          change,
+          percent,
           trend: change > 0.01 ? 'increase' : change < -0.01 ? 'decrease' : 'neutral'
         };
       }).filter(c => c !== null);
       
       if (comparisons.length === 0) {
-        analysisSection.style.display = 'none';
+        els.analysisSection.style.display = 'none';
         return;
       }
       
-      const topChanges = comparisons.sort((a,b) => Math.abs(b.change) - Math.abs(a.change)).slice(0, 6);
+      const topChanges = comparisons.sort((a, b) => Math.abs(b.change) - Math.abs(a.change)).slice(0, 6);
       
-      comparisonGrid.innerHTML = topChanges.map(c => `
+      els.comparisonGrid.innerHTML = topChanges.map(c => `
         <div class="comparison-card ${c.trend}">
           <div class="title">${c.vegetable.replace(/_/g, ' ')}</div>
           <div class="value">₹${c.latestPrice.toFixed(1)} <span style="font-size:1rem;color:var(--text-light)">was ₹${c.firstPrice.toFixed(1)}</span></div>
@@ -545,44 +617,44 @@
         </div>
       `).join('');
       
-      analysisSection.style.display = 'block';
+      els.analysisSection.style.display = 'block';
     }
 
-    function renderTable(data, latestDate = null) {
+    function renderTable(data, latestDate) {
       if (!data || data.length === 0) {
-        tableContainer.innerHTML = '<div class="loading"><p>No data available.</p></div>';
+        els.tableContainer.innerHTML = '<div class="loading"><p>No data available for this date.</p></div>';
         return;
       }
       
-      if (latestDate) {
-        latestDateLabel.textContent = formatDate(latestDate);
-      } else {
-        const sorted = [...data].sort((a,b) => b.Date - a.Date);
-        latestDateLabel.textContent = formatDate(sorted[0].Date);
-      }
+      els.latestDateLabel.textContent = formatDate(latestDate);
       
       const sorted = [...data].sort((a, b) => {
         const aVal = a?.[sortConfig.key];
         const bVal = b?.[sortConfig.key];
         if (aVal == null) return 1;
         if (bVal == null) return -1;
-        if (sortConfig.key === 'Date') return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
-        if (typeof aVal === 'string') return sortConfig.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        if (typeof aVal === 'string') {
+          return sortConfig.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        }
         return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
       });
       
-      const firstDateData = comparisonData?.firstData || [];
+      // Calculate first date averages for comparison
       const firstDateAvg = {};
-      VEGETABLES.forEach(veg => {
-        const vals = firstDateData.map(r => r[veg]).filter(v => v !== null);
-        firstDateAvg[veg] = vals.length > 0 ? vals.reduce((a,b) => a+b, 0) / vals.length : null;
-      });
+      if (comparisonData?.firstData) {
+        VEGETABLES.forEach(veg => {
+          const vals = comparisonData.firstData.map(r => r[veg]).filter(v => v !== null);
+          firstDateAvg[veg] = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+        });
+      }
       
       let html = `<table><thead><tr>
         <th data-sort="MANDAL">Mandal ${getSortIcon('MANDAL')}</th>`;
+      
       VEGETABLES.forEach(veg => {
         html += `<th data-sort="${veg}">${veg.replace(/_/g, ' ')} ${getSortIcon(veg)}</th>`;
       });
+      
       html += `</tr></thead><tbody>`;
       
       sorted.forEach(row => {
@@ -607,13 +679,15 @@
             html += `<td>₹${currVal.toFixed(1)} ${changeHtml}</td>`;
           }
         });
+        
         html += `</tr>`;
       });
       
       html += `</tbody></table>`;
-      tableContainer.innerHTML = html;
+      els.tableContainer.innerHTML = html;
       
-      tableContainer.querySelectorAll('th[data-sort]').forEach(th => {
+      // Add sort listeners
+      els.tableContainer.querySelectorAll('th[data-sort]').forEach(th => {
         th.addEventListener('click', () => {
           const key = th.dataset.sort;
           if (sortConfig.key === key) {
@@ -638,27 +712,39 @@
     }
 
     function showError(message) {
-      tableContainer.innerHTML = `<div class="error"><h4>⚠️ ${message}</h4>
-        <ul style="margin:12px 0 12px 20px">
-          <li>Check your internet connection</li>
-          <li>Verify Google Sheet is published to web</li>
-          <li>Try refreshing the page</li>
-        </ul>
-        <p style="margin-top:12px"><strong>CSV URL:</strong><br><code style="word-break:break-all;background:#fce4ec;padding:4px;border-radius:4px">${CSV_URL.substring(0, 80)}...</code></p>
-      </div>`;
+      els.tableContainer.innerHTML = `
+        <div class="error">
+          <h4>⚠️ ${message}</h4>
+          <ul style="margin:12px 0 12px 20px">
+            <li>Check your internet connection</li>
+            <li>Verify Google Sheet is published to web</li>
+            <li>Ensure "Anyone with link can view" permission</li>
+            <li>Try refreshing the page</li>
+          </ul>
+          <p style="margin-top:12px"><strong>CSV URL:</strong><br><code>${CSV_URL}</code></p>
+        </div>
+      `;
     }
 
     function exportToCSV() {
-      const exportData = getLatestDateData();
-      if (exportData.length === 0) { alert('No data to export'); return; }
+      const exportData = getLatestDateData(filteredData.length > 0 ? filteredData : rawData);
+      if (exportData.length === 0) {
+        alert('No data to export');
+        return;
+      }
       
       const headers = ['Date', 'Mandal', ...VEGETABLES];
       const rows = exportData.map(row => [
-        formatDate(row.Date), row.MANDAL,
+        formatDate(row.Date),
+        row.MANDAL,
         ...VEGETABLES.map(veg => row[veg] !== null ? row[veg].toFixed(1) : 'N/A')
       ]);
       
-      const csv = [headers.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
+      const csv = [
+        headers.join(','),
+        ...rows.map(r => r.map(c => `"${c}"`).join(','))
+      ].join('\n');
+      
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
@@ -667,10 +753,14 @@
     }
 
     function exportToPDF() {
-      const exportData = getLatestDateData();
-      if (exportData.length === 0) { alert('No data to export'); return; }
+      const exportData = getLatestDateData(filteredData.length > 0 ? filteredData : rawData);
+      if (exportData.length === 0) {
+        alert('No data to export');
+        return;
+      }
       
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      
       doc.setFontSize(16);
       doc.setTextColor(46, 125, 50);
       doc.text('🥬 Mandi Rate Report', 14, 15);
@@ -687,15 +777,19 @@
       ]);
       
       doc.autoTable({
-        head: tableHeaders, body: tableBody, startY: 30,
-        theme: 'grid', styles: { fontSize: 7, cellPadding: 2 },
+        head: tableHeaders,
+        body: tableBody,
+        startY: 30,
+        theme: 'grid',
+        styles: { fontSize: 7, cellPadding: 2 },
         headStyles: { fillColor: [46, 125, 50], textColor: 255 }
       });
       
       doc.save(`mandi_rates_${formatDate(latestDate).replace(/\s/g, '_')}.pdf`);
     }
 
-    window.mandiAnalyzer = { rawData, filteredData, applyFilters };
+    // Expose for debugging
+    window.mandiAnalyzer = { rawData, filteredData, VEGETABLES, applyFilters };
   </script>
 </body>
 </html>
