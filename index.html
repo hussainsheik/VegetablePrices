@@ -48,6 +48,8 @@
     .btn-success:hover { background: #2e7d32; }
     .btn-danger { background: #d32f2f; }
     .btn-danger:hover { background: #c62828; }
+    .btn-info { background: #1976d2; }
+    .btn-info:hover { background: #1565c0; }
     
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
     .stat-card { background: var(--card-bg); padding: 18px; border-radius: var(--radius); box-shadow: var(--shadow); text-align: center; }
@@ -104,6 +106,15 @@
     .error code { background: #fce4ec; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; word-break: break-all; }
     
     .footer { text-align: center; padding: 20px; color: var(--text-light); font-size: 0.9rem; margin-top: 20px; }
+    
+    /* Print Styles */
+    @media print {
+      .filters, .charts-section, .analysis-section, .veg-selector, .table-actions, .footer { display: none; }
+      .table-section { box-shadow: none; }
+      body { background: white; padding: 0; }
+      table { font-size: 10px; }
+      th, td { padding: 6px 4px; }
+    }
     
     @media (max-width: 768px) { 
       .filters { grid-template-columns: 1fr; } 
@@ -171,6 +182,7 @@
         <div class="table-actions">
           <button class="btn btn-sm btn-success" id="exportCSV" disabled>📥 Export CSV</button>
           <button class="btn btn-sm btn-danger" id="exportPDF" disabled>📄 Export PDF</button>
+          <button class="btn btn-sm btn-info" id="printTable" disabled>🖨️ Print</button>
         </div>
       </div>
       <div class="veg-selector" id="vegSelector"></div>
@@ -207,6 +219,8 @@
     let sortConfig = { key: 'MANDAL', direction: 'asc' };
     let comparisonData = null;
     let dataLoaded = false;
+    let currentTableData = [];
+    let currentLatestDate = null;
 
     const els = {
       tableContainer: document.getElementById('tableContainer'),
@@ -223,10 +237,10 @@
       resetFilters: document.getElementById('resetFilters'),
       exportCSV: document.getElementById('exportCSV'),
       exportPDF: document.getElementById('exportPDF'),
+      printTable: document.getElementById('printTable'),
       lastUpdated: document.getElementById('lastUpdated')
     };
 
-    // Initialize
     document.addEventListener('DOMContentLoaded', () => {
       setupDatePickers();
       setupEventListeners();
@@ -245,9 +259,9 @@
       els.resetFilters.addEventListener('click', resetFilters);
       els.exportCSV.addEventListener('click', exportToCSV);
       els.exportPDF.addEventListener('click', exportToPDF);
+      els.printTable.addEventListener('click', () => window.print());
     }
 
-    // Fetch Data
     async function fetchData() {
       try {
         const response = await fetch(CSV_URL);
@@ -270,7 +284,6 @@
             populateMandalFilter();
             populateVegSelector();
             
-            // Show latest date table immediately
             const latestData = getLatestDateData(rawData);
             const latestDate = latestData.length > 0 ? latestData[0].Date : new Date();
             renderTable(latestData, latestDate);
@@ -279,7 +292,6 @@
             els.lastUpdated.textContent = new Date().toLocaleDateString('en-IN');
             dataLoaded = true;
             
-            // Auto-apply default filters
             applyFilters();
           },
           error: (err) => showError('CSV parse error: ' + err.message)
@@ -289,7 +301,6 @@
       }
     }
 
-    // Parse Data
     function parseData(data) {
       return data
         .filter(row => row && row.Date && row.MANDAL)
@@ -317,8 +328,6 @@
     function parseDate(dateStr) {
       if (!dateStr) return null;
       const str = String(dateStr).trim();
-      
-      // Try MM/DD/YYYY
       const parts = str.split('/');
       if (parts.length === 3) {
         const [m, d, y] = parts.map(p => parseInt(p, 10));
@@ -326,8 +335,6 @@
           return new Date(y, m - 1, d);
         }
       }
-      
-      // Try standard parsing
       const d = new Date(str);
       return isNaN(d.getTime()) ? null : d;
     }
@@ -335,14 +342,10 @@
     function parseValue(val) {
       if (val === null || val === undefined) return null;
       const str = String(val).trim().toLowerCase();
-      
       const invalid = ['na', 'n/a', 'nill', 'nil', '-', '--', 'not available', 'column 31', 'yes', 'no', 'n', ''];
       if (invalid.includes(str)) return null;
-      
-      // Extract first number from string
       const match = String(val).trim().match(/^[\d.]+/);
       if (!match) return null;
-      
       const num = parseFloat(match[0]);
       return isNaN(num) || num < 0 ? null : num;
     }
@@ -378,6 +381,7 @@
       els.resetFilters.disabled = false;
       els.exportCSV.disabled = false;
       els.exportPDF.disabled = false;
+      els.printTable.disabled = false;
     }
 
     function getLatestDateData(data) {
@@ -465,12 +469,10 @@
 
     function renderAvgPriceChart() {
       const ctx = document.getElementById('avgPriceChart').getContext('2d');
-      
       const averages = VEGETABLES.map(veg => {
         const values = filteredData.map(d => d[veg]).filter(v => v !== null);
         return values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
       });
-      
       const labels = VEGETABLES.filter((_, i) => averages[i] !== null);
       const data = averages.filter(v => v !== null);
       
@@ -478,11 +480,11 @@
       
       charts.avgPrice = new Chart(ctx, {
         type: 'bar',
-        data: {
+         {
           labels: labels.map(l => l.replace(/_/g, ' ')),
           datasets: [{
             label: 'Average Price (₹)',
-            data: data,
+             data,
             backgroundColor: 'rgba(46, 125, 50, 0.7)',
             borderColor: 'rgba(46, 125, 50, 1)',
             borderWidth: 1,
@@ -494,25 +496,15 @@
           maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => `₹${ctx.parsed.y?.toFixed(2) || 'N/A'}`
-              }
-            }
+            tooltip: { callbacks: { label: (ctx) => `₹${ctx.parsed.y?.toFixed(2) || 'N/A'}` } }
           },
-          scales: {
-            y: {
-              beginAtZero: true,
-              title: { display: true, text: 'Price (₹)' }
-            }
-          }
+          scales: { y: { beginAtZero: true, title: { display: true, text: 'Price (₹)' } } }
         }
       });
     }
 
     function renderTrendChart() {
       const ctx = document.getElementById('trendChart').getContext('2d');
-      
       const grouped = {};
       filteredData.forEach(row => {
         if (!row?.Date) return;
@@ -521,7 +513,6 @@
         const val = row[selectedVegetable];
         if (val !== null) grouped[dateKey].push(val);
       });
-      
       const labels = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
       const data = labels.map(date => {
         const values = grouped[date];
@@ -532,11 +523,11 @@
       
       charts.trend = new Chart(ctx, {
         type: 'line',
-        data: {
+         {
           labels: labels.filter((_, i) => data[i] !== null),
           datasets: [{
             label: `${selectedVegetable.replace(/_/g, ' ')} Price`,
-            data: data,
+             data,
             borderColor: '#2e7d32',
             backgroundColor: 'rgba(46, 125, 50, 0.1)',
             fill: true,
@@ -549,20 +540,11 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            tooltip: {
-              callbacks: {
-                label: (ctx) => `₹${ctx.parsed.y?.toFixed(2) || 'N/A'}`
-              }
-            }
+            tooltip: { callbacks: { label: (ctx) => `₹${ctx.parsed.y?.toFixed(2) || 'N/A'}` } }
           },
           scales: {
-            y: {
-              beginAtZero: true,
-              title: { display: true, text: 'Price (₹)' }
-            },
-            x: {
-              title: { display: true, text: 'Date' }
-            }
+            y: { beginAtZero: true, title: { display: true, text: 'Price (₹)' } },
+            x: { title: { display: true, text: 'Date' } }
           }
         }
       });
@@ -580,7 +562,6 @@
       const comparisons = VEGETABLES.map(veg => {
         const firstAvg = firstData.map(r => r[veg]).filter(v => v !== null);
         const latestAvg = latestData.map(r => r[veg]).filter(v => v !== null);
-        
         const firstPrice = firstAvg.length > 0 ? firstAvg.reduce((a, b) => a + b, 0) / firstAvg.length : null;
         const latestPrice = latestAvg.length > 0 ? latestAvg.reduce((a, b) => a + b, 0) / latestAvg.length : null;
         
@@ -627,6 +608,8 @@
       }
       
       els.latestDateLabel.textContent = formatDate(latestDate);
+      currentTableData = data;
+      currentLatestDate = latestDate;
       
       const sorted = [...data].sort((a, b) => {
         const aVal = a?.[sortConfig.key];
@@ -639,7 +622,6 @@
         return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
       });
       
-      // Calculate first date averages for comparison
       const firstDateAvg = {};
       if (comparisonData?.firstData) {
         VEGETABLES.forEach(veg => {
@@ -686,7 +668,6 @@
       html += `</tbody></table>`;
       els.tableContainer.innerHTML = html;
       
-      // Add sort listeners
       els.tableContainer.querySelectorAll('th[data-sort]').forEach(th => {
         th.addEventListener('click', () => {
           const key = th.dataset.sort;
@@ -728,10 +709,7 @@
 
     function exportToCSV() {
       const exportData = getLatestDateData(filteredData.length > 0 ? filteredData : rawData);
-      if (exportData.length === 0) {
-        alert('No data to export');
-        return;
-      }
+      if (exportData.length === 0) { alert('No data to export'); return; }
       
       const headers = ['Date', 'Mandal', ...VEGETABLES];
       const rows = exportData.map(row => [
@@ -740,11 +718,7 @@
         ...VEGETABLES.map(veg => row[veg] !== null ? row[veg].toFixed(1) : 'N/A')
       ]);
       
-      const csv = [
-        headers.join(','),
-        ...rows.map(r => r.map(c => `"${c}"`).join(','))
-      ].join('\n');
-      
+      const csv = [headers.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
@@ -752,43 +726,169 @@
       link.click();
     }
 
+    // ENHANCED PDF EXPORT - Matches table exactly
     function exportToPDF() {
-      const exportData = getLatestDateData(filteredData.length > 0 ? filteredData : rawData);
+      const exportData = currentTableData.length > 0 ? currentTableData : getLatestDateData(filteredData.length > 0 ? filteredData : rawData);
       if (exportData.length === 0) {
         alert('No data to export');
         return;
       }
-      
-      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-      
-      doc.setFontSize(16);
+
+      // Calculate first date averages for comparison
+      const firstDateAvg = {};
+      if (comparisonData?.firstData) {
+        VEGETABLES.forEach(veg => {
+          const vals = comparisonData.firstData.map(r => r[veg]).filter(v => v !== null);
+          firstDateAvg[veg] = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+        });
+      }
+
+      // Create PDF - Use A3 landscape for more columns, or A4 if fewer mandals
+      const pageWidth = exportData.length > 15 ? 420 : 297; // A3 vs A4
+      const pageHeight = exportData.length > 15 ? 297 : 210;
+      const doc = new jsPDF({ 
+        orientation: 'landscape', 
+        unit: 'mm', 
+        format: [pageWidth, pageHeight] 
+      });
+
+      // Header
+      doc.setFontSize(18);
       doc.setTextColor(46, 125, 50);
-      doc.text('🥬 Mandi Rate Report', 14, 15);
+      doc.setFont('helvetica', 'bold');
+      doc.text('🥬 MANDI RATE REPORT', pageWidth / 2, 15, { align: 'center' });
       
-      const latestDate = exportData[0].Date;
+      // Subtitle with dates
       doc.setFontSize(10);
       doc.setTextColor(102, 102, 102);
-      doc.text(`Latest Rates: ${formatDate(latestDate)}`, 14, 22);
+      doc.setFont('helvetica', 'normal');
+      const reportDate = currentLatestDate || (exportData[0]?.Date || new Date());
+      const filterStart = els.startDate.valueAsDate;
+      const filterEnd = els.endDate.valueAsDate;
+      const mandal = els.mandalFilter.value || 'All Mandals';
       
+      doc.text(`Report Date: ${formatDate(reportDate)}`, pageWidth / 2, 22, { align: 'center' });
+      doc.text(`Filter Period: ${formatDate(filterStart)} to ${formatDate(filterEnd)}`, pageWidth / 2, 27, { align: 'center' });
+      doc.text(`Mandal: ${mandal}`, pageWidth / 2, 32, { align: 'center' });
+
+      // Prepare table data with change indicators
       const tableHeaders = [['Mandal', ...VEGETABLES.map(v => v.replace(/_/g, ' '))]];
-      const tableBody = exportData.map(row => [
-        row.MANDAL,
-        ...VEGETABLES.map(veg => row[veg] !== null ? `₹${row[veg].toFixed(1)}` : 'N/A')
-      ]);
       
+      const tableBody = exportData.map(row => {
+        const rowData = [row.MANDAL || 'N/A'];
+        
+        VEGETABLES.forEach(veg => {
+          const currVal = row[veg];
+          const firstAvg = firstDateAvg[veg];
+          
+          if (currVal === null || currVal === undefined) {
+            rowData.push('N/A');
+          } else {
+            let cellText = `₹${currVal.toFixed(1)}`;
+            
+            if (firstAvg !== null && firstAvg !== undefined) {
+              const change = currVal - firstAvg;
+              const percent = firstAvg !== 0 ? ((change / firstAvg) * 100).toFixed(1) : '0.0';
+              const arrow = change > 0.01 ? '↑' : change < -0.01 ? '↓' : '→';
+              cellText += ` ${arrow} ${Math.abs(change).toFixed(1)} (${percent}%)`;
+            }
+            
+            rowData.push(cellText);
+          }
+        });
+        
+        return rowData;
+      });
+
+      // Calculate column widths dynamically
+      const mandalWidth = 25;
+      const remainingWidth = pageWidth - mandalWidth - 20; // 20mm for margins
+      const vegWidth = remainingWidth / VEGETABLES.length;
+      
+      const columnStyles = {};
+      columnStyles[0] = { cellWidth: mandalWidth, fontStyle: 'bold', fillColor: [232, 245, 233] };
+      
+      for (let i = 1; i <= VEGETABLES.length; i++) {
+        columnStyles[i] = { cellWidth: vegWidth, minCellWidth: 15 };
+      }
+
+      // Generate table
       doc.autoTable({
         head: tableHeaders,
         body: tableBody,
-        startY: 30,
+        startY: 38,
         theme: 'grid',
-        styles: { fontSize: 7, cellPadding: 2 },
-        headStyles: { fillColor: [46, 125, 50], textColor: 255 }
+        styles: { 
+          fontSize: 7, 
+          cellPadding: 1.5,
+          overflow: 'linebreak',
+          cellWidth: 'wrap'
+        },
+        headStyles: { 
+          fillColor: [46, 125, 50], 
+          textColor: 255,
+          fontStyle: 'bold',
+          fontSize: 7,
+          halign: 'center'
+        },
+        bodyStyles: {
+          textColor: 50,
+          fontSize: 6.5
+        },
+        alternateRowStyles: { 
+          fillColor: [249, 251, 231] 
+        },
+        columnStyles: columnStyles,
+        margin: { top: 38, left: 10, right: 10 },
+        didParseCell: function(data) {
+          // Color-code rate changes
+          if (data.section === 'body' && data.column.index > 0) {
+            const cellText = data.cell.raw;
+            if (typeof cellText === 'string') {
+              if (cellText.includes('↑')) {
+                data.cell.styles.textColor = [211, 47, 47]; // Red for increase
+              } else if (cellText.includes('↓')) {
+                data.cell.styles.textColor = [56, 142, 60]; // Green for decrease
+              } else if (cellText.includes('→')) {
+                data.cell.styles.textColor = [117, 117, 117]; // Gray for neutral
+              }
+            }
+          }
+        },
+        didDrawPage: function(data) {
+          // Footer on each page
+          doc.setFontSize(8);
+          doc.setTextColor(150, 150, 150);
+          doc.text('Generated by Mandi Rate Analyzer', pageWidth / 2, pageHeight - 10, { align: 'center' });
+          doc.text(`Page ${data.pageNumber}`, pageWidth - 15, pageHeight - 10);
+        }
       });
-      
-      doc.save(`mandi_rates_${formatDate(latestDate).replace(/\s/g, '_')}.pdf`);
+
+      // Add summary section if space allows
+      const finalY = doc.lastAutoTable.finalY + 10;
+      if (finalY < pageHeight - 40) {
+        doc.setFontSize(10);
+        doc.setTextColor(46, 125, 50);
+        doc.setFont('helvetica', 'bold');
+        doc.text('📊 Summary Statistics', 15, finalY);
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(102, 102, 102);
+        doc.setFontSize(8);
+        
+        const totalMandals = new Set(exportData.map(d => d.MANDAL)).size;
+        const totalVeg = VEGETABLES.length;
+        
+        doc.text(`Total Mandals: ${totalMandals}`, 15, finalY + 6);
+        doc.text(`Total Vegetables: ${totalVeg}`, 80, finalY + 6);
+        doc.text(`Report Generated: ${new Date().toLocaleString('en-IN')}`, 150, finalY + 6);
+      }
+
+      // Save PDF
+      const fileName = `mandi_rates_${formatDate(reportDate).replace(/\s/g, '_')}_${mandal.replace(/\s/g, '_')}.pdf`;
+      doc.save(fileName);
     }
 
-    // Expose for debugging
     window.mandiAnalyzer = { rawData, filteredData, VEGETABLES, applyFilters };
   </script>
 </body>
