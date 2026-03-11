@@ -22,26 +22,6 @@
     header h1 { font-size: 1.8rem; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; }
     header p { opacity: 0.9; font-size: 1rem; max-width: 700px; margin: 0 auto; }
     
-    .status-bar {
-      background: #fff3e0;
-      border-left: 4px solid var(--secondary);
-      padding: 12px 16px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .status-bar.success { background: #e8f5e9; border-left-color: var(--decrease); }
-    .status-bar.error { background: #ffebee; border-left-color: var(--increase); }
-    .status-bar .icon { font-size: 1.2rem; }
-    .status-bar .message { flex: 1; }
-    .status-bar .retry-btn { 
-      background: var(--primary); color: white; border: none; 
-      padding: 6px 12px; border-radius: 4px; cursor: pointer; 
-      font-size: 0.85rem;
-    }
-    
     .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; background: var(--card-bg); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 24px; }
     .filter-group { display: flex; flex-direction: column; gap: 6px; }
     .filter-group label { font-weight: 600; font-size: 0.9rem; color: var(--text-light); }
@@ -107,27 +87,11 @@
     
     .loading { text-align: center; padding: 40px; color: var(--text-light); }
     .loading-spinner { width: 40px; height: 40px; border: 4px solid rgba(46, 125, 50, 0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
-    .loading-steps { margin-top: 16px; font-size: 0.9rem; }
-    .loading-steps .step { margin: 4px 0; }
-    .loading-steps .step.active { color: var(--primary); font-weight: 600; }
-    .loading-steps .step.done { color: var(--decrease); }
-    .loading-steps .step.error { color: var(--increase); }
     @keyframes spin { to { transform: rotate(360deg); } }
     
     .error { background: #ffebee; color: #c62828; padding: 16px; border-radius: var(--radius); margin: 20px 0; text-align: left; }
     .error h4 { margin-bottom: 8px; }
     .error code { background: #fce4ec; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
-    .error ul { margin: 12px 0 12px 20px; }
-    .error li { margin: 4px 0; }
-    
-    .debug-info { 
-      background: #263238; color: #aed581; 
-      padding: 16px; border-radius: var(--radius); 
-      margin: 20px 0; font-family: monospace; 
-      font-size: 0.85rem; max-height: 300px; overflow: auto;
-      display: none;
-    }
-    .debug-info.visible { display: block; }
     
     .footer { text-align: center; padding: 20px; color: var(--text-light); font-size: 0.9rem; margin-top: 20px; }
     
@@ -147,19 +111,6 @@
       <h1>🥬 Mandi Rate Analyzer</h1>
       <p>Real-time vegetable price analysis with date comparison & export</p>
     </header>
-
-    <!-- Status Bar -->
-    <div id="statusBar" class="status-bar" style="display:none;">
-      <span class="icon">⏳</span>
-      <span class="message">Loading data...</span>
-      <button class="retry-btn" id="retryBtn" style="display:none;">🔄 Retry</button>
-    </div>
-
-    <!-- Debug Toggle -->
-    <div style="text-align:right; margin-bottom:10px;">
-      <button class="btn btn-sm btn-outline" id="toggleDebug">🐛 Toggle Debug</button>
-    </div>
-    <div id="debugInfo" class="debug-info"></div>
 
     <div class="filters">
       <div class="filter-group">
@@ -197,7 +148,6 @@
       </div>
     </div>
 
-    <!-- Comparison Analysis Section -->
     <div class="analysis-section" id="analysisSection">
       <div class="analysis-header">
         <h3>📊 Price Comparison: Latest vs First Date</h3>
@@ -208,7 +158,7 @@
 
     <div class="table-section">
       <div class="table-header">
-        <h3>📋 Latest Rates Table (<span id="latestDateLabel">-</span>)</h3>
+        <h3>📋 Latest Rates Table (<span id="latestDateLabel">Loading...</span>)</h3>
         <div class="table-actions">
           <button class="btn btn-sm btn-success" id="exportCSV" disabled>📥 Export CSV</button>
           <button class="btn btn-sm btn-danger" id="exportPDF" disabled>📄 Export PDF</button>
@@ -218,15 +168,15 @@
       <div id="tableContainer">
         <div class="loading">
           <div class="loading-spinner"></div>
-          <p>Initializing...</p>
-          <div class="loading-steps" id="loadingSteps"></div>
+          <p>Fetching market data from Google Sheets...</p>
+          <p style="margin-top:12px;font-size:0.85rem">This should take 5-10 seconds</p>
         </div>
       </div>
     </div>
 
     <div class="footer">
       <p>Data sourced from Google Sheets • Last updated: <span id="lastUpdated">-</span></p>
-      <p style="margin-top:8px;font-size:0.85rem">💡 Tip: Click column headers to sort • Export buttons save current filtered view</p>
+      <p style="margin-top:8px;font-size:0.85rem">💡 Tip: Table loads first! Use filters to narrow down results</p>
     </div>
   </div>
 
@@ -246,8 +196,6 @@
     let charts = {}, sortConfig = { key: 'MANDAL', direction: 'asc' };
     let comparisonData = null;
     let dataLoaded = false;
-    let debugMode = false;
-    let debugLogs = [];
 
     const tableContainer = document.getElementById('tableContainer');
     const mandalFilter = document.getElementById('mandalFilter');
@@ -259,61 +207,11 @@
     const comparisonGrid = document.getElementById('comparisonGrid');
     const comparisonDates = document.getElementById('comparisonDates');
     const latestDateLabel = document.getElementById('latestDateLabel');
-    const statusBar = document.getElementById('statusBar');
-    const retryBtn = document.getElementById('retryBtn');
-    const debugInfo = document.getElementById('debugInfo');
-    const loadingSteps = document.getElementById('loadingSteps');
-
-    // Debug logging
-    function log(message, type = 'info') {
-      const timestamp = new Date().toLocaleTimeString();
-      const logEntry = `[${timestamp}] ${message}`;
-      debugLogs.push(logEntry);
-      console.log(logEntry);
-      updateDebugInfo();
-    }
-
-    function updateDebugInfo() {
-      debugInfo.innerHTML = debugLogs.slice(-50).join('<br>');
-      debugInfo.scrollTop = debugInfo.scrollHeight;
-    }
-
-    // Loading step tracker
-    function setLoadingStep(step, status = 'active') {
-      const steps = [
-        'Fetching CSV from Google Sheets',
-        'Parsing CSV data',
-        'Validating data structure',
-        'Building filters',
-        'Ready!'
-      ];
-      
-      loadingSteps.innerHTML = steps.map((s, i) => {
-        let className = 'step';
-        if (i < step) className += ' done';
-        if (i === step) className += ' ' + status;
-        return `<div class="${className}">${i < step ? '✓' : i === step ? '→' : '○'} ${s}</div>`;
-      }).join('');
-    }
-
-    // Status bar
-    function showStatus(message, type = 'loading', showRetry = false) {
-      statusBar.style.display = 'flex';
-      statusBar.className = 'status-bar ' + type;
-      statusBar.querySelector('.icon').textContent = type === 'success' ? '✅' : type === 'error' ? '❌' : '⏳';
-      statusBar.querySelector('.message').textContent = message;
-      retryBtn.style.display = showRetry ? 'inline-block' : 'none';
-    }
-
-    function hideStatus() {
-      statusBar.style.display = 'none';
-    }
 
     document.addEventListener('DOMContentLoaded', async () => {
-      log('Application initialized');
       setupDatePickers();
       setupEventListeners();
-      await fetchData();
+      await fetchData(); // Fetch and show table immediately
     });
 
     function setupDatePickers() {
@@ -321,7 +219,6 @@
       const thirtyDaysAgo = new Date(today.getTime() - 30*24*60*60*1000);
       endDateInput.valueAsDate = today;
       startDateInput.valueAsDate = thirtyDaysAgo;
-      log(`Date pickers set: ${startDateInput.value} to ${endDateInput.value}`);
     }
 
     function setupEventListeners() {
@@ -329,197 +226,107 @@
       document.getElementById('resetFilters').addEventListener('click', resetFilters);
       document.getElementById('exportCSV').addEventListener('click', exportToCSV);
       document.getElementById('exportPDF').addEventListener('click', exportToPDF);
-      retryBtn.addEventListener('click', () => fetchData());
-      document.getElementById('toggleDebug').addEventListener('click', () => {
-        debugMode = !debugMode;
-        debugInfo.classList.toggle('visible', debugMode);
-        log(`Debug mode ${debugMode ? 'enabled' : 'disabled'}`);
-      });
     }
 
+    // FAST FETCH - Minimal processing, show table ASAP
     async function fetchData() {
-      log('Starting data fetch...');
-      setLoadingStep(0, 'active');
-      showStatus('Fetching data from Google Sheets...', 'loading');
-      
-      // Enable/disable buttons
-      setButtonsEnabled(false);
-      
       try {
-        // Fetch with timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-        
-        log(`Fetching CSV from: ${CSV_URL.substring(0, 50)}...`);
-        setLoadingStep(0, 'active');
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
         
         const response = await fetch(CSV_URL, { signal: controller.signal });
         clearTimeout(timeoutId);
         
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        log('CSV fetched successfully');
-        setLoadingStep(0, 'done');
-        setLoadingStep(1, 'active');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
         const csvText = await response.text();
-        log(`CSV size: ${csvText.length} characters`);
         
-        // Parse CSV
         Papa.parse(csvText, {
           header: true, 
           skipEmptyLines: true, 
           dynamicTyping: false,
           complete: (results) => {
-            log(`Parse complete: ${results.data?.length || 0} rows`);
-            setLoadingStep(1, 'done');
-            setLoadingStep(2, 'active');
+            rawData = parseDataFast(results.data);
             
-            try {
-              rawData = parseData(results.data);
-              log(`Parsed ${rawData.length} valid rows`);
-              
-              if (rawData.length === 0) {
-                throw new Error('No valid data rows found after parsing');
-              }
-              
-              setLoadingStep(2, 'done');
-              setLoadingStep(3, 'active');
-              
-              // Check data structure
-              const sampleRow = rawData[0];
-              log('Sample row keys:', Object.keys(sampleRow));
-              log('Sample row MANDAL:', sampleRow.MANDAL);
-              log('Sample row Date:', sampleRow.Date);
-              
-              populateMandalFilter();
-              populateVegSelector();
-              
-              setLoadingStep(3, 'done');
-              setLoadingStep(4, 'done');
-              
-              dataLoaded = true;
-              setButtonsEnabled(true);
-              hideStatus();
-              
-              applyFilters();
-              document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString('en-IN');
-              log('Data loading complete!');
-              
-            } catch (parseError) {
-              log('Parse error: ' + parseError.message, 'error');
-              showError('Data parsing failed: ' + parseError.message, results);
+            if (rawData.length === 0) {
+              showError('No valid data found in CSV');
+              return;
             }
+            
+            // Show data immediately
+            populateMandalFilter();
+            populateVegSelector();
+            renderTable(getLatestDateData()); // Show latest date by default
+            enableUI();
+            
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString('en-IN');
+            dataLoaded = true;
+            
+            // Auto-apply filters for default date range
+            applyFilters();
           },
-          error: (err) => {
-            log('PapaParse error: ' + err.message, 'error');
-            showError('CSV parsing failed: ' + err.message);
-          }
+          error: (err) => showError('CSV parse error: ' + err.message)
         });
         
       } catch (error) {
-        log('Fetch error: ' + error.message, 'error');
         if (error.name === 'AbortError') {
-          showError('Request timed out after 15 seconds. Please check your internet connection.', null, true);
+          showError('Request timed out. Check internet connection.');
         } else {
-          showError('Failed to fetch  ' + error.message, null, true);
+          showError('Failed to fetch  ' + error.message);
         }
       }
     }
 
-    function setButtonsEnabled(enabled) {
-      document.getElementById('applyFilters').disabled = !enabled;
-      document.getElementById('resetFilters').disabled = !enabled;
-      document.getElementById('exportCSV').disabled = !enabled;
-      document.getElementById('exportPDF').disabled = !enabled;
-    }
-
-    function parseData(data) {
-      log(`Processing ${data?.length || 0} raw rows...`);
-      
-      const validRows = data
-        .filter((row, idx) => {
-          if (!row) return false;
-          if (!row.Date || !row.MANDAL) {
-            if (idx < 5) log(`Row ${idx} skipped: missing Date or MANDAL`);
-            return false;
-          }
-          if (row.MANDAL.toLowerCase().includes('mandal') && row.MANDAL.toLowerCase().includes('rates')) {
-            if (idx < 5) log(`Row ${idx} skipped: looks like footer note`);
-            return false;
-          }
-          return true;
-        });
-      
-      log(`${validRows.length} rows passed initial filter`);
-      
-      const parsed = validRows.map((row, idx) => {
-        const parsedRow = { 
-          Date: parseDate(row.Date), 
-          MANDAL: (row.MANDAL || '').trim() 
-        };
-        
-        if (!parsedRow.Date && idx < 5) {
-          log(`Row ${idx} Date parse failed: "${row.Date}"`);
-        }
-        
-        VEGETABLES.forEach(veg => {
-          parsedRow[veg] = row.hasOwnProperty(veg) ? parseValue(row[veg]) : null;
-        });
-        
-        return parsedRow;
-      });
-      
-      const withValidDates = parsed.filter(row => row.Date && !isNaN(row.Date.getTime()));
-      log(`${withValidDates.length} rows have valid dates`);
-      
-      return withValidDates;
+    // FAST PARSING - Only essential fields
+    function parseDataFast(data) {
+      return data
+        .filter(row => row && row.Date && row.MANDAL)
+        .filter(row => {
+          const m = row.MANDAL.toLowerCase();
+          return !(m.includes('mandal') && m.includes('rates'));
+        })
+        .map(row => {
+          const parsed = { 
+            Date: parseDate(row.Date), 
+            MANDAL: (row.MANDAL || '').trim() 
+          };
+          
+          // Only parse vegetable columns that exist
+          VEGETABLES.forEach(veg => {
+            parsed[veg] = row.hasOwnProperty(veg) ? parseValue(row[veg]) : null;
+          });
+          
+          return parsed;
+        })
+        .filter(row => row.Date && !isNaN(row.Date.getTime()));
     }
 
     function parseDate(dateStr) {
       if (!dateStr) return null;
-      const str = String(dateStr).trim();
-      
-      // Try MM/DD/YYYY format
-      const parts = str.split('/');
+      const parts = String(dateStr).split('/');
       if (parts.length === 3) {
-        const month = parseInt(parts[0], 10);
-        const day = parseInt(parts[1], 10);
-        const year = parseInt(parts[2], 10);
-        if (month >= 1 && month <= 12 && day >= 1 && day <= 31 && year > 2000) {
-          return new Date(year, month - 1, day);
+        const [m, d, y] = parts.map(Number);
+        if (m >= 1 && m <= 12 && d >= 1 && d <= 31 && y > 2000) {
+          return new Date(y, m - 1, d);
         }
       }
-      
-      // Try standard Date parsing
-      const d = new Date(str);
+      const d = new Date(dateStr);
       return isNaN(d.getTime()) ? null : d;
     }
 
     function parseValue(val) {
       if (val === null || val === undefined) return null;
       const str = String(val).trim().toLowerCase();
-      
-      const invalidValues = ['na', 'n/a', 'nill', 'nil', '-', '--', 'not available', 'column 31', 'yes', 'no', 'n', ''];
-      if (invalidValues.includes(str)) return null;
-      
-      // Extract number from strings like "30. Chinnadi" or "30,50"
-      const numStr = String(val).trim().split(/[.\s,]/)[0];
-      const num = parseFloat(numStr);
-      
+      const invalid = ['na', 'n/a', 'nill', 'nil', '-', '--', 'not available', 'column 31', 'yes', 'no', 'n', ''];
+      if (invalid.includes(str)) return null;
+      const num = parseFloat(String(val).trim().split(/[.\s,]/)[0]);
       return isNaN(num) || num < 0 ? null : num;
     }
 
     function populateMandalFilter() {
       const mandals = [...new Set(rawData.map(d => d.MANDAL).filter(m => m))].sort();
-      log(`Found ${mandals.length} unique mandals`);
-      
       mandalFilter.innerHTML = '<option value="">All Mandals</option>' +
         mandals.map(m => `<option value="${m}">${m}</option>`).join('');
-      
-      setLoadingStep(3, 'done');
     }
 
     function populateVegSelector() {
@@ -532,33 +339,34 @@
           vegSelector.querySelectorAll('.veg-chip').forEach(c => c.classList.remove('active'));
           e.currentTarget.classList.add('active');
           selectedVegetable = e.currentTarget.dataset.veg;
-          log(`Selected vegetable: ${selectedVegetable}`);
-          renderCharts();
-          renderTable(getLatestDateData());
+          if (dataLoaded) {
+            renderCharts();
+            renderTable(getLatestDateData());
+          }
         });
       });
     }
 
-    function getLatestDateData() {
-      if (!filteredData || filteredData.length === 0) return [];
-      const sortedByDate = [...filteredData].sort((a,b) => b.Date - a.Date);
-      const latestDate = sortedByDate[0].Date;
-      return filteredData.filter(row => row.Date.getTime() === latestDate.getTime());
+    function enableUI() {
+      document.getElementById('applyFilters').disabled = false;
+      document.getElementById('resetFilters').disabled = false;
+      document.getElementById('exportCSV').disabled = false;
+      document.getElementById('exportPDF').disabled = false;
+    }
+
+    function getLatestDateData(data = filteredData.length > 0 ? filteredData : rawData) {
+      if (!data || data.length === 0) return [];
+      const sorted = [...data].sort((a,b) => b.Date - a.Date);
+      const latestDate = sorted[0].Date;
+      return data.filter(row => row.Date.getTime() === latestDate.getTime());
     }
 
     function applyFilters() {
-      if (!dataLoaded) {
-        log('Cannot apply filters: data not loaded');
-        return;
-      }
-      
-      log('Applying filters...');
+      if (!dataLoaded) return;
       
       const startDate = startDateInput.valueAsDate;
       const endDate = endDateInput.valueAsDate;
       const mandal = mandalFilter.value;
-      
-      log(`Filter: ${startDate?.toLocaleDateString()} to ${endDate?.toLocaleDateString()}, Mandal: ${mandal || 'All'}`);
       
       filteredData = rawData.filter(row => {
         if (!row || !row.Date) return false;
@@ -568,29 +376,20 @@
         return true;
       });
       
-      log(`Filtered to ${filteredData.length} rows`);
-      
       if (filteredData.length === 0) {
         showError('No data matches filters. Try widening your date range.');
         return;
       }
       
-      // Sort by date to find first and latest
       const sortedByDate = [...filteredData].sort((a,b) => a.Date - b.Date);
       const firstDate = sortedByDate[0].Date;
       const latestDate = sortedByDate[sortedByDate.length - 1].Date;
       
-      log(`Date range: ${firstDate.toLocaleDateString()} to ${latestDate.toLocaleDateString()}`);
-      
-      // Prepare comparison data
       prepareComparisonData(firstDate, latestDate, mandal);
-      
       renderStats();
       renderCharts();
       renderTable(getLatestDateData(), latestDate);
       renderComparison();
-      
-      showStatus(`Showing ${filteredData.length} records from ${filteredData.length} mandals`, 'success');
     }
 
     function prepareComparisonData(firstDate, latestDate, mandal) {
@@ -603,13 +402,7 @@
         (!mandal || row.MANDAL === mandal)
       );
       
-      comparisonData = {
-        firstDate, latestDate,
-        firstData: firstDateData,
-        latestData: latestDateData
-      };
-      
-      log(`Comparison: ${firstDateData.length} rows (first) vs ${latestDateData.length} rows (latest)`);
+      comparisonData = { firstDate, latestDate, firstData: firstDateData, latestData: latestDateData };
     }
 
     function resetFilters() {
@@ -755,13 +548,18 @@
       analysisSection.style.display = 'block';
     }
 
-    function renderTable(data, latestDate) {
+    function renderTable(data, latestDate = null) {
       if (!data || data.length === 0) {
-        tableContainer.innerHTML = '<div class="loading"><p>No data available for the latest date in your filter range.</p></div>';
+        tableContainer.innerHTML = '<div class="loading"><p>No data available.</p></div>';
         return;
       }
       
-      latestDateLabel.textContent = formatDate(latestDate);
+      if (latestDate) {
+        latestDateLabel.textContent = formatDate(latestDate);
+      } else {
+        const sorted = [...data].sort((a,b) => b.Date - a.Date);
+        latestDateLabel.textContent = formatDate(sorted[0].Date);
+      }
       
       const sorted = [...data].sort((a, b) => {
         const aVal = a?.[sortConfig.key];
@@ -839,94 +637,48 @@
       return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
     }
 
-    function showError(message, data = null, showRetry = false) {
-      let html = `<div class="error">
-        <h4>⚠️ ${message}</h4>
-        <ul>
+    function showError(message) {
+      tableContainer.innerHTML = `<div class="error"><h4>⚠️ ${message}</h4>
+        <ul style="margin:12px 0 12px 20px">
           <li>Check your internet connection</li>
           <li>Verify Google Sheet is published to web</li>
-          <li>Ensure "Anyone with the link can view" permission</li>
           <li>Try refreshing the page</li>
         </ul>
-        <p style="margin-top:12px"><strong>CSV URL:</strong><br><code style="word-break:break-all">${CSV_URL}</code></p>
-      `;
-      
-      if (data) {
-        html += `<p style="margin-top:12px"><strong>Debug Info:</strong></p>
-          <code style="background:#fce4ec;padding:8px;border-radius:4px;display:block;max-height:150px;overflow:auto">
-            Rows: ${data?.data?.length || 0}<br>
-            First row keys: ${data?.data?.[0] ? Object.keys(data.data[0]).join(', ') : 'N/A'}
-          </code>`;
-      }
-      
-      html += `</div>`;
-      tableContainer.innerHTML = html;
-      showStatus(message, 'error', showRetry);
-      log('Error shown to user: ' + message, 'error');
+        <p style="margin-top:12px"><strong>CSV URL:</strong><br><code style="word-break:break-all;background:#fce4ec;padding:4px;border-radius:4px">${CSV_URL.substring(0, 80)}...</code></p>
+      </div>`;
     }
 
     function exportToCSV() {
-      if (!filteredData || filteredData.length === 0) {
-        alert('No data to export');
-        return;
-      }
-      
       const exportData = getLatestDateData();
-      if (exportData.length === 0) {
-        alert('No data available for export');
-        return;
-      }
+      if (exportData.length === 0) { alert('No data to export'); return; }
       
       const headers = ['Date', 'Mandal', ...VEGETABLES];
       const rows = exportData.map(row => [
-        formatDate(row.Date),
-        row.MANDAL,
+        formatDate(row.Date), row.MANDAL,
         ...VEGETABLES.map(veg => row[veg] !== null ? row[veg].toFixed(1) : 'N/A')
       ]);
       
-      const csvContent = [
-        headers.join(','),
-        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-      ].join('\n');
-      
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const csv = [headers.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `mandi_rates_${formatDate(new Date()).replace(/\s/g, '_')}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
+      link.href = URL.createObjectURL(blob);
+      link.download = `mandi_rates_${formatDate(new Date()).replace(/\s/g, '_')}.csv`;
       link.click();
-      document.body.removeChild(link);
-      
-      log('CSV exported successfully');
     }
 
     function exportToPDF() {
-      if (!filteredData || filteredData.length === 0) {
-        alert('No data to export');
-        return;
-      }
-      
       const exportData = getLatestDateData();
-      if (exportData.length === 0) {
-        alert('No data available for export');
-        return;
-      }
+      if (exportData.length === 0) { alert('No data to export'); return; }
       
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-      
       doc.setFontSize(16);
       doc.setTextColor(46, 125, 50);
       doc.text('🥬 Mandi Rate Report', 14, 15);
       
+      const latestDate = exportData[0].Date;
       doc.setFontSize(10);
       doc.setTextColor(102, 102, 102);
-      const latestDate = exportData[0].Date;
-      doc.text(`Latest Rates: ${formatDate(latestDate)} | Generated: ${new Date().toLocaleDateString('en-IN')}`, 14, 22);
-      
-      const mandal = mandalFilter.value || 'All Mandals';
-      doc.text(`Filter: ${formatDate(startDateInput.valueAsDate)} to ${formatDate(endDateInput.valueAsDate)} | Mandal: ${mandal}`, 14, 28);
+      doc.text(`Latest Rates: ${formatDate(latestDate)}`, 14, 22);
       
       const tableHeaders = [['Mandal', ...VEGETABLES.map(v => v.replace(/_/g, ' '))]];
       const tableBody = exportData.map(row => [
@@ -935,31 +687,15 @@
       ]);
       
       doc.autoTable({
-        head: tableHeaders,
-        body: tableBody,
-        startY: 35,
-        theme: 'grid',
-        styles: { fontSize: 7, cellPadding: 2 },
-        headStyles: { fillColor: [46, 125, 50], textColor: 255, fontStyle: 'bold' },
-        alternateRowStyles: { fillColor: [245, 249, 245] },
-        columnStyles: { 0: { cellWidth: 30, fontStyle: 'bold' } }
+        head: tableHeaders, body: tableBody, startY: 30,
+        theme: 'grid', styles: { fontSize: 7, cellPadding: 2 },
+        headStyles: { fillColor: [46, 125, 50], textColor: 255 }
       });
       
-      const finalY = doc.lastAutoTable.finalY + 10;
-      doc.setFontSize(8);
-      doc.setTextColor(102, 102, 102);
-      doc.text('Data sourced from Google Sheets', 14, finalY);
-      
       doc.save(`mandi_rates_${formatDate(latestDate).replace(/\s/g, '_')}.pdf`);
-      
-      log('PDF exported successfully');
     }
 
-    window.mandiAnalyzer = { 
-      rawData, filteredData, VEGETABLES, 
-      applyFilters, exportToCSV, exportToPDF,
-      debugLogs, log
-    };
+    window.mandiAnalyzer = { rawData, filteredData, applyFilters };
   </script>
 </body>
 </html>
